@@ -57,12 +57,12 @@ const PageOne = React.forwardRef<HTMLDivElement, PageOneProps>(({ data, generate
         </div>
       </header>
       <hr className="border-gray-300 mb-4" />
-      <div className='text-center my-4'>
+      {/* <div className='text-center my-4'>
         <h2 className="text-2xl font-bold text-gray-800 tracking-wider">
             PROPERTY VERIFICATION REPORT
         </h2>
         <p className="text-sm text-gray-500">Official Legal Due Diligence Summary</p>
-      </div>
+      </div> */}
 
       <main className="space-y-6 text-sm flex-grow">
         {/* Property Details */}

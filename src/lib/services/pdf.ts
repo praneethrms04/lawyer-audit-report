@@ -19,23 +19,12 @@ export const generatePdf = async (elements: HTMLElement[]): Promise<Blob> => {
     const imgWidth = pdfWidth;
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
     
-    let heightLeft = imgHeight;
-    let position = 0;
-
     if (i > 0) {
       pdf.addPage();
     }
     
-    // This logic is simplified; for this app, one canvas fits one page.
+    // Add the image to the PDF, ensuring it doesn't exceed the page height.
     pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight > pdfHeight ? pdfHeight : imgHeight);
-    heightLeft -= pdfHeight;
-
-    while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pdfHeight;
-    }
   }
 
   return pdf.output('blob');
