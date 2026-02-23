@@ -48,8 +48,20 @@ export default function ReportEngine({ data }: ReportEngineProps) {
         
         const blob = await generatePdf([page1Ref.current, page2Ref.current, page3Ref.current]);
         setPdfBlob(blob);
-        const url = URL.createObjectURL(blob);
-        setPreviewUrl(url);
+        
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                if (typeof reader.result === 'string') {
+                    resolve(reader.result);
+                } else {
+                    reject(new Error('Failed to convert blob to data URL.'));
+                }
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+        setPreviewUrl(dataUrl);
 
       } catch (error) {
         console.error('Error generating PDF:', error);
@@ -66,16 +78,6 @@ export default function ReportEngine({ data }: ReportEngineProps) {
     setTimeout(createPdf, 100);
 
   }, [pdfGenerationTrigger, toast]);
-
-
-  useEffect(() => {
-    // Cleanup object URL
-    return () => {
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-      }
-    };
-  }, [previewUrl]);
 
   const handleGeneratePreview = async () => {
     setIsLoading(true);
