@@ -167,7 +167,7 @@ export default function ReportEngine({ data }: ReportEngineProps) {
       </div>
 
       {/* Hidden container for rendering pages for html2canvas */}
-      <div className="absolute top-0 left-[-9999px] opacity-0" aria-hidden="true">
+      <div className="absolute top-0 left-[-9999px]" aria-hidden="true">
         <div ref={page1Ref}><PageOne data={data} generatedDate={generatedDate} /></div>
         <div ref={page2Ref}><PageTwo data={data} generatedDate={generatedDate} /></div>
         <div ref={page3Ref}>
