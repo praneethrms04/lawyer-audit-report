@@ -32,7 +32,7 @@ const PageOne = React.forwardRef<HTMLDivElement, PageOneProps>(({ data, generate
       className="bg-white text-black font-sans"
       style={{
         width: '210mm',
-        minHeight: '297mm',
+        height: '297mm',
         padding: '20mm',
         display: 'flex',
         flexDirection: 'column',
@@ -63,16 +63,7 @@ const PageOne = React.forwardRef<HTMLDivElement, PageOneProps>(({ data, generate
 
       <hr className="border-gray-300" />
 
-      <section className="text-center my-6">
-        <h2 className="text-2xl font-bold tracking-wider text-gray-800">
-          PROPERTY VERIFICATION REPORT
-        </h2>
-        <p className="text-sm text-gray-500 mt-1">
-          Official Legal Due Diligence Summary
-        </p>
-      </section>
-
-      <div className="flex-grow space-y-4 text-sm">
+      <main className="flex-grow space-y-4 text-sm mt-6">
         <section>
           <h3 className="text-lg font-semibold text-gray-800 mb-2 border-b pb-2">
             Property Information
@@ -81,6 +72,11 @@ const PageOne = React.forwardRef<HTMLDivElement, PageOneProps>(({ data, generate
             <DetailItem label="Owner" value={propertyInfo.propertyOwnerName} />
             <DetailItem label="Address" value={propertyInfo.address} />
             <DetailItem label="Village" value={propertyInfo.village} />
+            <DetailItem label="Built-up Area" value={propertyInfo.built} />
+            <DetailItem label="Extent" value={propertyInfo.extent} />
+            <DetailItem label="Survey No." value={propertyInfo.survey} />
+            <DetailItem label="Block" value={propertyInfo.block} />
+            <DetailItem label="Property Type" value={propertyInfo.propertyType} />
             <div className="py-2">
                 <p className="font-semibold text-gray-600 text-sm">Boundaries</p>
                 <Boundaries boundaries={propertyInfo.boundaries} />
@@ -95,7 +91,10 @@ const PageOne = React.forwardRef<HTMLDivElement, PageOneProps>(({ data, generate
           <div className="space-y-1">
             <DetailItem label="Property ID" value={taxdetails.propertyId} />
             <DetailItem label="Owner Name" value={taxdetails.ownerName} />
+            <DetailItem label="Locality" value={taxdetails.locality} />
             <DetailItem label="Annual Tax" value={new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(Number(taxdetails.annualTax))} />
+            <DetailItem label="Plinth Area" value={`${taxdetails.plinthArea} sq. ft.`} />
+            <DetailItem label="Arrears" value={taxdetails.arrearTax} />
           </div>
         </section>
         
@@ -141,7 +140,7 @@ const PageOne = React.forwardRef<HTMLDivElement, PageOneProps>(({ data, generate
                 </div>
             )}
         </section>
-      </div>
+      </main>
     </div>
   );
 });
