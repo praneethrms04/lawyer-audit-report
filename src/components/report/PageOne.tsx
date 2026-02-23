@@ -1,24 +1,15 @@
 import React from 'react';
 import Image from 'next/image';
 import type { ReportData } from '@/types/report';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface PageOneProps {
   data: ReportData;
   generatedDate: string;
 }
 
-const DetailItem = ({ label, value }: { label: string; value: React.ReactNode }) => (
-    <div className="border-t border-gray-200 px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-        <dt className="text-sm font-medium text-gray-600">{label}</dt>
-        <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{value || 'N/A'}</dd>
-    </div>
-);
-
-
 const PageOne = React.forwardRef<HTMLDivElement, PageOneProps>(({ data, generatedDate }, ref) => {
-  const sroName = data.SR_CODE?.value?.name || 'N/A';
-  const sroCode = data.SR_CODE?.value?.code || '';
-  const serviceName = data.services && data.services.length > 0 ? data.services[0].name : 'N/A';
+  const ecRecords = data.jaagaFetch?.ecRecords || [];
 
   return (
     <div
@@ -37,10 +28,10 @@ const PageOne = React.forwardRef<HTMLDivElement, PageOneProps>(({ data, generate
       {/* Header */}
       <header className="flex justify-between items-start pb-4">
         <div className="flex items-center space-x-3">
-          <Image 
-            src="https://picsum.photos/seed/logo/50/50" 
-            alt="Company Logo" 
-            width={50} 
+          <Image
+            src="https://picsum.photos/seed/logo/50/50"
+            alt="Company Logo"
+            width={50}
             height={50}
             data-ai-hint="logo"
             className="rounded-full"
@@ -69,47 +60,43 @@ const PageOne = React.forwardRef<HTMLDivElement, PageOneProps>(({ data, generate
         </p>
       </section>
 
-      {/* Order Details */}
-      <section className="border border-gray-200 rounded-lg overflow-hidden">
-          <div className="bg-gray-50 px-4 py-3">
-              <h3 className="text-base font-semibold leading-7 text-gray-900">Order Details</h3>
+      {/* EC Records Section */}
+      <section className="flex-grow">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">
+          Encumbrance Certificate (EC) Records
+        </h3>
+        {ecRecords.length > 0 ? (
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-gray-50">
+                <TableHead className="font-bold text-gray-600 w-[15%]">Deed No / Date</TableHead>
+                <TableHead className="font-bold text-gray-600 w-[15%]">Deed Type</TableHead>
+                <TableHead className="font-bold text-gray-600">First Party (Seller)</TableHead>
+                <TableHead className="font-bold text-gray-600">Second Party (Buyer)</TableHead>
+                <TableHead className="font-bold text-gray-600 w-[15%]">SRO</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {ecRecords.map((record, index) => (
+                <TableRow key={index} className="align-top">
+                  <TableCell className="text-xs">
+                    <p className="font-medium">{record.deedNo}</p>
+                    <p className="text-gray-500">{record.deedDate}</p>
+                  </TableCell>
+                  <TableCell className="text-xs">{record.deedType}</TableCell>
+                  <TableCell className="text-xs">{record.firstPartyName}</TableCell>
+                  <TableCell className="text-xs">{record.secondPartyName}</TableCell>
+                  <TableCell className="text-xs">{record.sro}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <div className="h-40 bg-gray-50 rounded-md border border-dashed border-gray-300 p-4 text-center text-sm text-gray-500 flex items-center justify-center">
+            <span>No Encumbrance Certificate records found.</span>
           </div>
-          <dl className="divide-y divide-gray-200">
-              <DetailItem label="State" value={data.STATE?.name} />
-              <DetailItem label="Sub Registrar Office (SRO)" value={`${sroName} (${sroCode})`} />
-              <DetailItem label="Document Number" value={data.DOCUMENT_NUMBER?.value} />
-              <DetailItem label="Registration Year" value={data.YEAR?.value} />
-              <DetailItem label="Property Tax Number (PTIN)" value={data.PTIN?.value} />
-              <DetailItem label="Mode" value={data.mode ? data.mode.charAt(0).toUpperCase() + data.mode.slice(1) : 'N/A'} />
-              <DetailItem label="Service Type" value={serviceName} />
-          </dl>
+        )}
       </section>
-
-      {/* Annexure Section */}
-      <section className="mt-10 flex-grow">
-        <h3 className="font-bold text-lg text-gray-800 mb-4">ANNEXURE - I</h3>
-        <div className="space-y-6">
-            <div>
-                <h4 className="font-semibold text-gray-700 text-sm mb-2 border-b pb-1">Additional Document References</h4>
-                <div className="h-16 bg-gray-50 rounded-md border border-dashed border-gray-300 p-2 text-center text-xs text-gray-400 flex items-center justify-center">
-                    <span>(Attach certified copies, if any)</span>
-                </div>
-            </div>
-            <div>
-                <h4 className="font-semibold text-gray-700 text-sm mb-2 border-b pb-1">Supporting Attachments</h4>
-                <div className="h-16 bg-gray-50 rounded-md border border-dashed border-gray-300 p-2 text-center text-xs text-gray-400 flex items-center justify-center">
-                    <span>(e.g., Maps, Survey Plans)</span>
-                </div>
-            </div>
-             <div>
-                <h4 className="font-semibold text-gray-700 text-sm mb-2 border-b pb-1">Notes & Observations</h4>
-                <div className="h-24 bg-gray-50 rounded-md border border-dashed border-gray-300 p-2 text-center text-xs text-gray-400 flex items-center justify-center">
-                    <span>(Manual verification notes)</span>
-                </div>
-            </div>
-        </div>
-      </section>
-
     </div>
   );
 });
