@@ -1,0 +1,199 @@
+"use client";
+
+import { useState, useRef, useEffect } from 'react';
+import type { ReportData } from '@/types/report';
+import { generateAIRiskAnalysis, type AIRiskAnalysisOutput } from '@/ai/flows/ai-risk-analysis-generator';
+import { generatePdf } from '@/lib/services/pdf';
+import { uploadPdf } from '@/lib/services/api';
+
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2, FileDown, Upload, Eye, Printer } from 'lucide-react';
+
+import PageOne from './PageOne';
+import PageTwo from './PageTwo';
+import PageThree from './PageThree';
+
+interface ReportEngineProps {
+  data: ReportData;
+}
+
+export default function ReportEngine({ data }: ReportEngineProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
+  const [aiAnalysisResult, setAiAnalysisResult] = useState<AIRiskAnalysisOutput | null>(null);
+  const [pdfGenerationTrigger, setPdfGenerationTrigger] = useState<number | null>(null);
+
+  const { toast } = useToast();
+
+  const page1Ref = useRef<HTMLDivElement>(null);
+  const page2Ref = useRef<HTMLDivElement>(null);
+  const page3Ref = useRef<HTMLDivElement>(null);
+  const generatedDate = new Date().toLocaleDateString();
+
+
+  useEffect(() => {
+    if (!pdfGenerationTrigger) return;
+
+    const createPdf = async () => {
+      setIsLoading(true);
+      try {
+        if (!page1Ref.current || !page2Ref.current || !page3Ref.current) {
+          throw new Error('Report pages not rendered correctly.');
+        }
+        
+        const blob = await generatePdf([page1Ref.current, page2Ref.current, page3Ref.current]);
+        setPdfBlob(blob);
+        const url = URL.createObjectURL(blob);
+        setPreviewUrl(url);
+
+      } catch (error) {
+        console.error('Error generating PDF:', error);
+        toast({
+          variant: 'destructive',
+          title: 'PDF Generation Failed',
+          description: error instanceof Error ? error.message : 'An unknown error occurred.',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    // Timeout to ensure DOM is updated with AI data before capturing
+    setTimeout(createPdf, 100);
+
+  }, [pdfGenerationTrigger, toast]);
+
+
+  useEffect(() => {
+    // Cleanup object URL
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
+  const handleGeneratePreview = async () => {
+    setIsLoading(true);
+    try {
+      const result = await generateAIRiskAnalysis({
+        AIGeneratedDescription: data.jaagaFetch.AIGeneratedDescription,
+        ecRecords: data.jaagaFetch.ecRecords,
+        taxdetails: data.jaagaFetch.taxdetails,
+      });
+      setAiAnalysisResult(result);
+      setPdfGenerationTrigger(Date.now());
+    } catch (error) {
+      console.error('AI Analysis failed:', error);
+      toast({
+        variant: 'destructive',
+        title: 'AI Analysis Failed',
+        description: 'Could not generate AI risk analysis for the report.',
+      });
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!pdfBlob) {
+      toast({
+        variant: 'destructive',
+        title: 'No PDF to Upload',
+        description: 'Please generate a preview first.',
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const response = await uploadPdf(data._id, pdfBlob);
+      toast({
+        title: 'Upload Successful',
+        description: `Report for order ${response.orderId} uploaded.`,
+      });
+    } catch (error) {
+      console.error('Error uploading PDF:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Upload Failed',
+        description: error instanceof Error ? error.message : 'An unknown error occurred.',
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handlePrint = () => {
+    if (previewUrl) {
+      const printWindow = window.open(previewUrl);
+      printWindow?.addEventListener('load', () => {
+          printWindow.print();
+      });
+    } else {
+      toast({
+        title: 'No PDF to print',
+        description: 'Please generate a preview first.',
+      });
+    }
+  };
+
+  return (
+    <div className="bg-card p-6 rounded-lg shadow-md border">
+      <div className="flex flex-wrap gap-4 items-center justify-center">
+        <Button onClick={handleGeneratePreview} disabled={isLoading || isUploading} size="lg">
+          {isLoading ? (
+            <Loader2 className="animate-spin" />
+          ) : (
+            <Eye />
+          )}
+          Generate Preview
+        </Button>
+        <Button onClick={handlePrint} disabled={!previewUrl || isLoading || isUploading} size="lg" variant="secondary">
+          <Printer />
+          Print Report
+        </Button>
+        <Button onClick={handleUpload} disabled={!pdfBlob || isLoading || isUploading} size="lg" variant="secondary">
+          {isUploading ? (
+            <Loader2 className="animate-spin" />
+          ) : (
+            <Upload />
+          )}
+          Confirm & Upload
+        </Button>
+      </div>
+
+      {/* Hidden container for rendering pages for html2canvas */}
+      <div className="absolute top-0 left-[-9999px] opacity-0" aria-hidden="true">
+        <div ref={page1Ref}><PageOne data={data} generatedDate={generatedDate} /></div>
+        <div ref={page2Ref}><PageTwo data={data} generatedDate={generatedDate} /></div>
+        <div ref={page3Ref}>
+          {aiAnalysisResult && <PageThree data={data} aiAnalysis={aiAnalysisResult} generatedDate={generatedDate} />}
+        </div>
+      </div>
+
+      <Dialog open={!!previewUrl} onOpenChange={(open) => !open && setPreviewUrl(null)}>
+        <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Report Preview</DialogTitle>
+          </DialogHeader>
+          <div className="flex-grow rounded-md overflow-hidden">
+            {previewUrl && (
+              <iframe
+                src={previewUrl}
+                className="w-full h-full"
+                title="Report Preview"
+                aria-label="Report Preview"
+              />
+            )}
+          </div>
+           <DialogFooter className="sm:justify-end">
+            <Button variant="secondary" onClick={() => setPreviewUrl(null)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
