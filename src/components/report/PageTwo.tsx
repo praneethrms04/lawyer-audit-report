@@ -1,71 +1,69 @@
 import React from 'react';
 import type { ReportData } from '@/types/report';
-import type { AIRiskAnalysisOutput } from '@/ai/flows/ai-risk-analysis-types';
 import PageWrapper from './PageWrapper';
-import DynamicTable from './DynamicTable';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/table';
 
 interface PageTwoProps {
   data: ReportData;
-  aiAnalysis: AIRiskAnalysisOutput;
   generatedDate: string;
 }
 
-const PageTwo = React.forwardRef<HTMLDivElement, PageTwoProps>(({ data, aiAnalysis, generatedDate }, ref) => {
-    const { Property_Investment_Overview } = data.jaagaFetch;
-
-    const investmentData = Property_Investment_Overview.reduce((acc, item) => {
-        acc[item.field] = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(Number(item.value));
-        return acc;
-    }, {} as Record<string, string>);
-
-    const investmentTableData = [
-        {
-        "Registration Value": investmentData["Registration Value"] || "N/A",
-        "Consideration Value": investmentData["Consideration Value"] || "N/A",
-        }
-    ];
+const PageTwo = React.forwardRef<HTMLDivElement, PageTwoProps>(({ data, generatedDate }, ref) => {
+    const { ecRecords } = data.jaagaFetch;
 
   return (
     <PageWrapper ref={ref} currentPage={2} generatedDate={generatedDate}>
-      <div className="space-y-6 flex flex-col h-full">
-
-        <div>
-          <h2 className="text-xl font-semibold text-gray-800 border-b pb-2">Property Investment Overview</h2>
-          <DynamicTable
-            headers={['Registration Value', 'Consideration Value']}
-            data={investmentTableData}
-          />
-        </div>
-        
-        <div>
-            <h2 className="text-xl font-semibold text-gray-800 border-b pb-2">AI Observations & Risk Analysis</h2>
-
-            <div className="space-y-4 mt-4">
-            {aiAnalysis.issues.map((item, index) => (
-                <div key={index} className="p-3 bg-gray-50/50 rounded-md border border-gray-200" style={{ pageBreakInside: 'avoid' }}>
-                <p className="font-bold text-red-700">{item.issue}</p>
-                <p className="text-gray-600 mt-1">
-                    <em className="text-sm">{item.comment}</em>
-                </p>
-                {(item.ecValue || item.taxValue) && (
-                    <div className="mt-2 text-xs text-gray-500 bg-gray-100 p-2 rounded">
-                        {item.ecValue && <div><strong>EC Ref:</strong> {item.ecValue}</div>}
-                        {item.taxValue && <div><strong>Tax Ref:</strong> {item.taxValue}</div>}
-                    </div>
-                )}
+        <section className="space-y-6 flex flex-col h-full">
+            <h2 className="text-xl font-semibold text-gray-800 border-b-2 pb-2">
+                Encumbrance Certificate (EC) Records
+            </h2>
+            {ecRecords.length > 0 ? (
+                 <div className="border rounded-lg overflow-hidden mt-4">
+                    <Table>
+                        <TableHeader>
+                            <TableRow className="bg-gray-100 hover:bg-gray-100">
+                                <TableHead className="font-bold text-gray-700">Deed Details</TableHead>
+                                <TableHead className="font-bold text-gray-700">Parties</TableHead>
+                                <TableHead className="font-bold text-gray-700">SRO</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                        {ecRecords.map((record, index) => (
+                            <TableRow key={index} className="border-b align-top" style={{ pageBreakInside: 'avoid' }}>
+                                <TableCell className="w-1/3">
+                                    <div className="font-medium">Deed No: {record.deedNo}</div>
+                                    <div className="text-gray-600">Date: {record.deedDate}</div>
+                                    <div className="text-gray-600">Type: {record.deedType}</div>
+                                </TableCell>
+                                <TableCell className="w-1/3">
+                                    <div className='mb-2'>
+                                        <p className="font-semibold text-gray-500 text-xs">Executant (Seller):</p>
+                                        <p className="text-gray-800 break-words">{record.firstPartyName}</p>
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-gray-500 text-xs">Claimant (Buyer):</p>
+                                        <p className="text-gray-800 break-words">{record.secondPartyName}</p>
+                                    </div>
+                                </TableCell>
+                                <TableCell className="w-1/3">{record.sro}</TableCell>
+                            </TableRow>
+                        ))}
+                        </TableBody>
+                    </Table>
+                 </div>
+            ) : (
+                <div className="h-24 bg-gray-50 rounded-md border border-dashed border-gray-300 p-4 text-center text-sm text-gray-500 flex items-center justify-center mt-4">
+                    <span>No Encumbrance Certificate records found.</span>
                 </div>
-            ))}
-            </div>
-        </div>
-
-        <div className="flex-grow"></div>
-
-        <div className="pt-8 border-t-2 border-dotted border-gray-400">
-            <p className="text-gray-600">Lawyer Signature:</p>
-            <div className="h-20"></div>
-        </div>
-
-      </div>
+            )}
+        </section>
     </PageWrapper>
   );
 });

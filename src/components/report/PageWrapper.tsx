@@ -16,7 +16,7 @@ const PageWrapper = React.forwardRef<HTMLDivElement, PageWrapperProps>(
         className="bg-white text-black font-body flex flex-col"
         style={{
           width: '210mm',
-          height: '297mm',
+          minHeight: '297mm',
           padding: '20mm',
           fontFamily: "'Inter', sans-serif",
           boxSizing: 'border-box',

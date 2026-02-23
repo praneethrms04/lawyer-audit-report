@@ -9,7 +9,7 @@ const ReportFooter = ({ currentPage, generatedDate }: ReportFooterProps) => {
   return (
     <footer className="mt-auto pt-4 border-t border-gray-300 text-xs text-gray-500 flex justify-between">
       <div>Generated on: {generatedDate}</div>
-      <div>Page {currentPage} of 2</div>
+      <div>Page {currentPage} of 3</div>
     </footer>
   );
 };
