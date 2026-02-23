@@ -1,7 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
-import type { ReportData, PropertyInfo } from '@/types/report';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import type { ReportData } from '@/types/report';
 
 interface PageOneProps {
   data: ReportData;
@@ -15,7 +14,7 @@ const DetailItem = ({ label, value }: { label:string, value: React.ReactNode }) 
     </div>
   );
   
-const Boundaries = ({ boundaries }: { boundaries: PropertyInfo['boundaries'] }) => (
+const Boundaries = ({ boundaries }: { boundaries: ReportData['jaagaFetch']['propertyInfo']['boundaries'] }) => (
     <div className="grid grid-cols-2 gap-x-8 gap-y-2 mt-2 p-3 bg-gray-50 rounded-md text-xs">
       <div><span className="font-semibold text-gray-600">North:</span> {boundaries['[N]'] || 'N/A'}</div>
       <div><span className="font-semibold text-gray-600">South:</span> {boundaries['[S]'] || 'N/A'}</div>
@@ -33,7 +32,7 @@ const PageOne = React.forwardRef<HTMLDivElement, PageOneProps>(({ data, generate
       className="bg-white text-black font-sans"
       style={{
         width: '210mm',
-        height: '297mm',
+        minHeight: '297mm',
         padding: '20mm',
         display: 'flex',
         flexDirection: 'column',
@@ -59,7 +58,6 @@ const PageOne = React.forwardRef<HTMLDivElement, PageOneProps>(({ data, generate
         <div className="text-right text-xs text-gray-600">
           <p><span className="font-bold">Order ID:</span> {data.srn}</p>
           <p><span className="font-bold">Generated:</span> {generatedDate}</p>
-          {data.srn && <p><span className="font-bold">SRN:</span> {data.srn}</p>}
         </div>
       </header>
 
@@ -74,7 +72,7 @@ const PageOne = React.forwardRef<HTMLDivElement, PageOneProps>(({ data, generate
         </p>
       </section>
 
-      <div className="flex-grow space-y-4">
+      <div className="flex-grow space-y-4 text-sm">
         <section>
           <h3 className="text-lg font-semibold text-gray-800 mb-2 border-b pb-2">
             Property Information
@@ -102,35 +100,45 @@ const PageOne = React.forwardRef<HTMLDivElement, PageOneProps>(({ data, generate
         </section>
         
         <section>
-            <h3 className="text-lg font-semibold text-gray-800 mb-2 border-b pb-2">
-            Encumbrance Certificate (EC) Records
+            <h3 className="text-lg font-semibold text-gray-800 mb-3 border-b pb-2">
+                Encumbrance Certificate (EC) Records
             </h3>
             {ecRecords.length > 0 ? (
-            <Table>
-                <TableHeader>
-                <TableRow className="bg-gray-50">
-                    <TableHead className="font-bold text-gray-600 w-[15%]">Deed No / Date</TableHead>
-                    <TableHead className="font-bold text-gray-600">First Party (Seller)</TableHead>
-                    <TableHead className="font-bold text-gray-600">Second Party (Buyer)</TableHead>
-                </TableRow>
-                </TableHeader>
-                <TableBody>
+                <div className="space-y-4">
                 {ecRecords.map((record, index) => (
-                    <TableRow key={index} className="align-top text-xs">
-                    <TableCell>
-                        <p className="font-medium">{record.deedNo}</p>
-                        <p className="text-gray-500">{record.deedDate}</p>
-                    </TableCell>
-                    <TableCell>{record.firstPartyName}</TableCell>
-                    <TableCell>{record.secondPartyName}</TableCell>
-                    </TableRow>
+                    <div key={index} className="p-4 border border-gray-200 rounded-lg bg-gray-50/50" style={{ pageBreakInside: 'avoid' }}>
+                        <div className="grid grid-cols-3 gap-x-4 gap-y-2 text-xs mb-3">
+                            <div className="font-medium">
+                                <span className="text-gray-500">Deed No: </span>{record.deedNo}
+                            </div>
+                            <div className="font-medium">
+                                <span className="text-gray-500">Date: </span>{record.deedDate}
+                            </div>
+                            <div className="font-medium">
+                                <span className="text-gray-500">Deed Type: </span>{record.deedType}
+                            </div>
+                        </div>
+                        <div className="text-xs space-y-3">
+                            <div className="border-t pt-2">
+                                <p className="font-semibold text-gray-600">First Party (Seller):</p>
+                                <p className="text-gray-800 mt-1">{record.firstPartyName}</p>
+                            </div>
+                            <div className="border-t pt-2">
+                                <p className="font-semibold text-gray-600">Second Party (Buyer):</p>
+                                <p className="text-gray-800 mt-1">{record.secondPartyName}</p>
+                            </div>
+                            <div className="border-t pt-2">
+                                <p className="font-semibold text-gray-600">SRO:</p>
+                                <p className="text-gray-800 mt-1">{record.sro}</p>
+                            </div>
+                        </div>
+                    </div>
                 ))}
-                </TableBody>
-            </Table>
+                </div>
             ) : (
-            <div className="h-24 bg-gray-50 rounded-md border border-dashed border-gray-300 p-4 text-center text-sm text-gray-500 flex items-center justify-center">
-                <span>No Encumbrance Certificate records found.</span>
-            </div>
+                <div className="h-24 bg-gray-50 rounded-md border border-dashed border-gray-300 p-4 text-center text-sm text-gray-500 flex items-center justify-center">
+                    <span>No Encumbrance Certificate records found.</span>
+                </div>
             )}
         </section>
       </div>
