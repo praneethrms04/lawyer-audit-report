@@ -10,7 +10,7 @@ import { uploadPdf } from '@/lib/services/api';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, FileDown, Upload, Eye, Printer } from 'lucide-react';
+import { Loader2, Upload, Printer } from 'lucide-react';
 
 import PageOne from './PageOne';
 import PageTwo from './PageTwo';
@@ -40,7 +40,6 @@ export default function ReportEngine({ data }: ReportEngineProps) {
     if (!pdfGenerationTrigger) return;
 
     const createPdf = async () => {
-      setIsLoading(true);
       try {
         if (!page1Ref.current || !page2Ref.current || !page3Ref.current) {
           throw new Error('Report pages not rendered correctly.');
@@ -79,7 +78,7 @@ export default function ReportEngine({ data }: ReportEngineProps) {
 
   }, [pdfGenerationTrigger, toast]);
 
-  const handleGeneratePreview = async () => {
+  const handleGeneratePdf = async () => {
     setIsLoading(true);
     try {
       const result = await generateAIRiskAnalysis({
@@ -115,6 +114,7 @@ export default function ReportEngine({ data }: ReportEngineProps) {
         title: 'Upload Successful',
         description: `Report for order ${response.orderId} uploaded.`,
       });
+      setPreviewUrl(null);
     } catch (error) {
       console.error('Error uploading PDF:', error);
       toast({
@@ -142,32 +142,22 @@ export default function ReportEngine({ data }: ReportEngineProps) {
   };
 
   return (
-    <div className="bg-card p-6 rounded-lg shadow-md border">
+    <div className="bg-card p-6 rounded-lg shadow-md border text-center">
       <div className="flex flex-wrap gap-4 items-center justify-center">
-        <Button onClick={handleGeneratePreview} disabled={isLoading || isUploading} size="lg">
+        <Button onClick={handleGeneratePdf} disabled={isLoading} size="lg">
           {isLoading ? (
-            <Loader2 className="animate-spin" />
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Generating...
+            </>
           ) : (
-            <Eye />
+            'Generate PDF'
           )}
-          Generate Preview
-        </Button>
-        <Button onClick={handlePrint} disabled={!previewUrl || isLoading || isUploading} size="lg" variant="secondary">
-          <Printer />
-          Print Report
-        </Button>
-        <Button onClick={handleUpload} disabled={!pdfBlob || isLoading || isUploading} size="lg" variant="secondary">
-          {isUploading ? (
-            <Loader2 className="animate-spin" />
-          ) : (
-            <Upload />
-          )}
-          Confirm & Upload
         </Button>
       </div>
 
       {/* Hidden container for rendering pages for html2canvas */}
-      <div className="absolute top-0 left-[-9999px]" aria-hidden="true">
+      <div className="fixed top-0 left-[-9999px] w-auto h-auto opacity-100" aria-hidden="true">
         <div ref={page1Ref}><PageOne data={data} generatedDate={generatedDate} /></div>
         <div ref={page2Ref}><PageTwo data={data} generatedDate={generatedDate} /></div>
         <div ref={page3Ref}>
@@ -190,7 +180,19 @@ export default function ReportEngine({ data }: ReportEngineProps) {
               />
             )}
           </div>
-           <DialogFooter className="sm:justify-end">
+           <DialogFooter className="mt-4 gap-2">
+            <Button variant="outline" onClick={handlePrint} disabled={!previewUrl}>
+              <Printer className="mr-2 h-4 w-4" />
+              Print
+            </Button>
+            <Button onClick={handleUpload} disabled={!pdfBlob || isUploading}>
+              {isUploading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Upload className="mr-2 h-4 w-4" />
+              )}
+              Confirm & Upload
+            </Button>
             <Button variant="secondary" onClick={() => setPreviewUrl(null)}>Close</Button>
           </DialogFooter>
         </DialogContent>

@@ -28,6 +28,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'jaaga-public-1722574714.s3.ap-south-1.amazonaws.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };
