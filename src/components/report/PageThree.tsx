@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ReportData } from '@/types/report';
-import type { AIRiskAnalysisOutput } from '@/ai/flows/ai-risk-analysis-generator';
+import type { AIRiskAnalysisOutput } from '@/ai/flows/ai-risk-analysis-types';
 import PageWrapper from './PageWrapper';
 
 interface PageThreeProps {

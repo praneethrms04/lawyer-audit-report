@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import type { ReportData } from '@/types/report';
-import { generateAIRiskAnalysis, type AIRiskAnalysisOutput } from '@/ai/flows/ai-risk-analysis-generator';
+import { generateAIRiskAnalysis } from '@/ai/flows/ai-risk-analysis-generator';
+import type { AIRiskAnalysisOutput } from '@/ai/flows/ai-risk-analysis-types';
 import { generatePdf } from '@/lib/services/pdf';
 import { uploadPdf } from '@/lib/services/api';
 
@@ -80,9 +81,7 @@ export default function ReportEngine({ data }: ReportEngineProps) {
     setIsLoading(true);
     try {
       const result = await generateAIRiskAnalysis({
-        AIGeneratedDescription: data.jaagaFetch.AIGeneratedDescription,
-        ecRecords: data.jaagaFetch.ecRecords,
-        taxdetails: data.jaagaFetch.taxdetails,
+        issues: data.jaagaFetch.AIGeneratedDescription,
       });
       setAiAnalysisResult(result);
       setPdfGenerationTrigger(Date.now());

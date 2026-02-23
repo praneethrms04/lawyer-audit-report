@@ -8,10 +8,10 @@ interface PageOneProps {
   generatedDate: string;
 }
 
-const DetailItem = ({ label, value }: { label: string; value: string | undefined }) => (
+const DetailItem = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <div className="flex py-2 border-b border-gray-200">
     <p className="w-1/3 font-semibold text-gray-600">{label}</p>
-    <p className="w-2/3 text-gray-800">{value || 'N/A'}</p>
+    <p className="w-2/3 text-gray-800">{value ?? 'N/A'}</p>
   </div>
 );
 
@@ -22,7 +22,7 @@ const PageOne = React.forwardRef<HTMLDivElement, PageOneProps>(({ data, generate
         <h2 className="text-xl font-semibold text-gray-800 border-b pb-2">Order & Registration Details</h2>
         <div className="space-y-1">
           <DetailItem label="SRN" value={data.srn} />
-          <DetailItem label="State" value={data.STATE.value.name} />
+          <DetailItem label="State" value={data.STATE.name} />
           <DetailItem label="SRO" value={`${data.SR_CODE.value.name} (${data.SR_CODE.value.code})`} />
           <DetailItem label="Document Number" value={data.DOCUMENT_NUMBER.value} />
           <DetailItem label="Registration Year" value={data.YEAR.value} />
