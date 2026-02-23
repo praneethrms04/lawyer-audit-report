@@ -1,6 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
-import type { ReportData } from '@/types/report';
+import type { ReportData, PropertyInfo } from '@/types/report';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface PageOneProps {
@@ -8,8 +8,24 @@ interface PageOneProps {
   generatedDate: string;
 }
 
+const DetailItem = ({ label, value }: { label:string, value: React.ReactNode }) => (
+    <div className="flex py-2 border-b border-gray-200 text-sm">
+      <p className="w-1/3 font-semibold text-gray-600">{label}</p>
+      <p className="w-2/3 text-gray-800">{value ?? 'N/A'}</p>
+    </div>
+  );
+  
+const Boundaries = ({ boundaries }: { boundaries: PropertyInfo['boundaries'] }) => (
+    <div className="grid grid-cols-2 gap-x-8 gap-y-2 mt-2 p-3 bg-gray-50 rounded-md text-xs">
+      <div><span className="font-semibold text-gray-600">North:</span> {boundaries['[N]'] || 'N/A'}</div>
+      <div><span className="font-semibold text-gray-600">South:</span> {boundaries['[S]'] || 'N/A'}</div>
+      <div><span className="font-semibold text-gray-600">East:</span> {boundaries['[E]'] || 'N/A'}</div>
+      <div><span className="font-semibold text-gray-600">West:</span> {boundaries['[W]'] || 'N/A'}</div>
+    </div>
+);
+
 const PageOne = React.forwardRef<HTMLDivElement, PageOneProps>(({ data, generatedDate }, ref) => {
-  const ecRecords = data.jaagaFetch?.ecRecords || [];
+  const { propertyInfo, taxdetails, ecRecords } = data.jaagaFetch;
 
   return (
     <div
@@ -25,7 +41,6 @@ const PageOne = React.forwardRef<HTMLDivElement, PageOneProps>(({ data, generate
         boxSizing: 'border-box',
       }}
     >
-      {/* Header */}
       <header className="flex justify-between items-start pb-4">
         <div className="flex items-center space-x-3">
           <Image
@@ -50,8 +65,7 @@ const PageOne = React.forwardRef<HTMLDivElement, PageOneProps>(({ data, generate
 
       <hr className="border-gray-300" />
 
-      {/* Title */}
-      <section className="text-center my-8">
+      <section className="text-center my-6">
         <h2 className="text-2xl font-bold tracking-wider text-gray-800">
           PROPERTY VERIFICATION REPORT
         </h2>
@@ -60,43 +74,66 @@ const PageOne = React.forwardRef<HTMLDivElement, PageOneProps>(({ data, generate
         </p>
       </section>
 
-      {/* EC Records Section */}
-      <section className="flex-grow">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">
-          Encumbrance Certificate (EC) Records
-        </h3>
-        {ecRecords.length > 0 ? (
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-gray-50">
-                <TableHead className="font-bold text-gray-600 w-[15%]">Deed No / Date</TableHead>
-                <TableHead className="font-bold text-gray-600 w-[15%]">Deed Type</TableHead>
-                <TableHead className="font-bold text-gray-600">First Party (Seller)</TableHead>
-                <TableHead className="font-bold text-gray-600">Second Party (Buyer)</TableHead>
-                <TableHead className="font-bold text-gray-600 w-[15%]">SRO</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {ecRecords.map((record, index) => (
-                <TableRow key={index} className="align-top">
-                  <TableCell className="text-xs">
-                    <p className="font-medium">{record.deedNo}</p>
-                    <p className="text-gray-500">{record.deedDate}</p>
-                  </TableCell>
-                  <TableCell className="text-xs">{record.deedType}</TableCell>
-                  <TableCell className="text-xs">{record.firstPartyName}</TableCell>
-                  <TableCell className="text-xs">{record.secondPartyName}</TableCell>
-                  <TableCell className="text-xs">{record.sro}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        ) : (
-          <div className="h-40 bg-gray-50 rounded-md border border-dashed border-gray-300 p-4 text-center text-sm text-gray-500 flex items-center justify-center">
-            <span>No Encumbrance Certificate records found.</span>
+      <div className="flex-grow space-y-4">
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-2 border-b pb-2">
+            Property Information
+          </h3>
+          <div className="space-y-1">
+            <DetailItem label="Owner" value={propertyInfo.propertyOwnerName} />
+            <DetailItem label="Address" value={propertyInfo.address} />
+            <DetailItem label="Village" value={propertyInfo.village} />
+            <div className="py-2">
+                <p className="font-semibold text-gray-600 text-sm">Boundaries</p>
+                <Boundaries boundaries={propertyInfo.boundaries} />
+            </div>
           </div>
-        )}
-      </section>
+        </section>
+
+        <section>
+          <h3 className="text-lg font-semibold text-gray-800 mb-2 border-b pb-2">
+            Tax Details
+          </h3>
+          <div className="space-y-1">
+            <DetailItem label="Property ID" value={taxdetails.propertyId} />
+            <DetailItem label="Owner Name" value={taxdetails.ownerName} />
+            <DetailItem label="Annual Tax" value={new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(Number(taxdetails.annualTax))} />
+          </div>
+        </section>
+        
+        <section>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2 border-b pb-2">
+            Encumbrance Certificate (EC) Records
+            </h3>
+            {ecRecords.length > 0 ? (
+            <Table>
+                <TableHeader>
+                <TableRow className="bg-gray-50">
+                    <TableHead className="font-bold text-gray-600 w-[15%]">Deed No / Date</TableHead>
+                    <TableHead className="font-bold text-gray-600">First Party (Seller)</TableHead>
+                    <TableHead className="font-bold text-gray-600">Second Party (Buyer)</TableHead>
+                </TableRow>
+                </TableHeader>
+                <TableBody>
+                {ecRecords.map((record, index) => (
+                    <TableRow key={index} className="align-top text-xs">
+                    <TableCell>
+                        <p className="font-medium">{record.deedNo}</p>
+                        <p className="text-gray-500">{record.deedDate}</p>
+                    </TableCell>
+                    <TableCell>{record.firstPartyName}</TableCell>
+                    <TableCell>{record.secondPartyName}</TableCell>
+                    </TableRow>
+                ))}
+                </TableBody>
+            </Table>
+            ) : (
+            <div className="h-24 bg-gray-50 rounded-md border border-dashed border-gray-300 p-4 text-center text-sm text-gray-500 flex items-center justify-center">
+                <span>No Encumbrance Certificate records found.</span>
+            </div>
+            )}
+        </section>
+      </div>
     </div>
   );
 });

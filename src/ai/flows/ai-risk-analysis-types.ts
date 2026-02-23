@@ -24,11 +24,6 @@ export type AIRiskAnalysisInput = z.infer<typeof AIRiskAnalysisInputSchema>;
  */
 export const AIRiskAnalysisOutputSchema = z.object({
   issues: z.array(IssueSchema).describe('Structured list of identified risk issues, each with issue, inferred values, and comment.'),
-  conclusion: z.string().describe('A comprehensive summary conclusion based on all identified risk issues.'),
 });
 
 export type AIRiskAnalysisOutput = z.infer<typeof AIRiskAnalysisOutputSchema>;
-
-export const ConclusionOutputSchema = z.object({
-    conclusion: z.string().describe('A comprehensive summary conclusion based on all identified risk issues.'),
-});

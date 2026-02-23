@@ -12,7 +12,6 @@ import { Loader2, Download } from 'lucide-react';
 
 import PageOne from './PageOne';
 import PageTwo from './PageTwo';
-import PageThree from './PageThree';
 
 interface ReportEngineProps {
   data: ReportData;
@@ -27,14 +26,12 @@ export default function ReportEngine({ data }: ReportEngineProps) {
 
   const page1Ref = useRef<HTMLDivElement>(null);
   const page2Ref = useRef<HTMLDivElement>(null);
-  const page3Ref = useRef<HTMLDivElement>(null);
   const generatedDate = new Date().toLocaleDateString();
 
   useEffect(() => {
     // On mount, populate AI issues from mock data for display
     setAiAnalysisResult({
       issues: data.jaagaFetch.AIGeneratedDescription,
-      conclusion: 'The AI-generated conclusion will appear here after you click "Generate & Download PDF".',
     });
   }, [data.jaagaFetch.AIGeneratedDescription]);
 
@@ -43,11 +40,11 @@ export default function ReportEngine({ data }: ReportEngineProps) {
 
     const createAndDownloadPdf = async () => {
       try {
-        if (!page1Ref.current || !page2Ref.current || !page3Ref.current) {
+        if (!page1Ref.current || !page2Ref.current) {
           throw new Error('Report pages not rendered correctly.');
         }
         
-        const blob = await generatePdf([page1Ref.current, page2Ref.current, page3Ref.current]);
+        const blob = await generatePdf([page1Ref.current, page2Ref.current]);
         
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -83,6 +80,7 @@ export default function ReportEngine({ data }: ReportEngineProps) {
   const handleGeneratePdf = async () => {
     setIsLoading(true);
     try {
+      // AI analysis no longer generates a conclusion, but we keep the structure
       const result = await generateAIRiskAnalysis({
         issues: data.jaagaFetch.AIGeneratedDescription,
       });
@@ -93,7 +91,7 @@ export default function ReportEngine({ data }: ReportEngineProps) {
       toast({
         variant: 'destructive',
         title: 'AI Analysis Failed',
-        description: 'Could not generate AI risk analysis for the report.',
+        description: 'Could not process report data.',
       });
       setIsLoading(false);
     }
@@ -105,12 +103,9 @@ export default function ReportEngine({ data }: ReportEngineProps) {
         <div ref={page1Ref} className="shadow-lg rounded-lg overflow-hidden border">
             <PageOne data={data} generatedDate={generatedDate} />
         </div>
-        <div ref={page2Ref} className="shadow-lg rounded-lg overflow-hidden border">
-            <PageTwo data={data} generatedDate={generatedDate} />
-        </div>
         {aiAnalysisResult && (
-            <div ref={page3Ref} className="shadow-lg rounded-lg overflow-hidden border">
-                <PageThree data={data} aiAnalysis={aiAnalysisResult} generatedDate={generatedDate} />
+            <div ref={page2Ref} className="shadow-lg rounded-lg overflow-hidden border">
+                <PageTwo data={data} aiAnalysis={aiAnalysisResult} generatedDate={generatedDate} />
             </div>
         )}
       </div>
