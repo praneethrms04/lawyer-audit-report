@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import type { ReportData } from '@/types/report';
 import { generateAIRiskAnalysis } from '@/ai/flows/ai-risk-analysis-generator';
 import type { AIRiskAnalysisOutput } from '@/ai/flows/ai-risk-analysis-types';
@@ -20,8 +20,6 @@ interface ReportEngineProps {
 
 export default function ReportEngine({ data }: ReportEngineProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [aiAnalysisResult, setAiAnalysisResult] = useState<AIRiskAnalysisOutput | null>(null);
-  const [pdfGenerationTrigger, setPdfGenerationTrigger] = useState<number | null>(null);
 
   const { toast } = useToast();
 
@@ -30,94 +28,62 @@ export default function ReportEngine({ data }: ReportEngineProps) {
   const page3Ref = useRef<HTMLDivElement>(null);
   const generatedDate = new Date().toLocaleDateString();
 
-  useEffect(() => {
-    // On mount, populate AI issues from mock data for display
-    setAiAnalysisResult({
-      issues: data.jaagaFetch.AIGeneratedDescription,
-    });
-  }, [data.jaagaFetch.AIGeneratedDescription]);
-
-  useEffect(() => {
-    if (!pdfGenerationTrigger) return;
-
-    const createAndDownloadPdf = async () => {
-      try {
-        if (!page1Ref.current || !page2Ref.current || !page3Ref.current) {
-          throw new Error('Report pages not rendered correctly.');
-        }
-        
-        const blob = await generatePdf([
-            page1Ref.current, 
-            page2Ref.current,
-            page3Ref.current,
-        ]);
-        
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${data._id}-report.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        toast({
-            title: "Download Started",
-            description: "Your PDF report is downloading.",
-        });
-
-      } catch (error) {
-        console.error('Error generating PDF:', error);
-        toast({
-          variant: 'destructive',
-          title: 'PDF Generation Failed',
-          description: error instanceof Error ? error.message : 'An unknown error occurred.',
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    // Timeout to ensure DOM is updated with AI data before capturing
-    setTimeout(createAndDownloadPdf, 100);
-
-  }, [pdfGenerationTrigger, toast, data._id]);
-
   const handleGeneratePdf = async () => {
     setIsLoading(true);
     try {
-      const result = await generateAIRiskAnalysis({
-        issues: data.jaagaFetch.AIGeneratedDescription,
+      if (!page1Ref.current || !page2Ref.current || !page3Ref.current) {
+        throw new Error('Report pages not rendered correctly.');
+      }
+      
+      const blob = await generatePdf([
+          page1Ref.current, 
+          page2Ref.current,
+          page3Ref.current,
+      ]);
+      
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${data._id}-report.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({
+          title: "Download Started",
+          description: "Your PDF report is downloading.",
       });
-      setAiAnalysisResult(result);
-      setPdfGenerationTrigger(Date.now());
+
     } catch (error) {
-      console.error('AI Analysis failed:', error);
+      console.error('Error generating PDF:', error);
       toast({
         variant: 'destructive',
-        title: 'AI Analysis Failed',
-        description: 'Could not process report data.',
+        title: 'PDF Generation Failed',
+        description: error instanceof Error ? error.message : 'An unknown error occurred.',
       });
+    } finally {
       setIsLoading(false);
     }
+  };
+
+  const aiAnalysisResult = {
+    issues: data.jaagaFetch.AIGeneratedDescription,
   };
 
   return (
     <>
       <div className="flex flex-col items-center gap-8 py-8">
         <div ref={page1Ref} className="shadow-lg rounded-lg overflow-hidden border">
-            <PageOne data={data} />
+            <PageOne data={data} generatedDate={generatedDate} />
         </div>
-        {aiAnalysisResult && (
-            <>
-                <div ref={page2Ref} className="shadow-lg rounded-lg overflow-hidden border">
-                    <PageTwo data={data} generatedDate={generatedDate} />
-                </div>
-                <div ref={page3Ref} className="shadow-lg rounded-lg overflow-hidden border">
-                    <PageThree data={data} aiAnalysis={aiAnalysisResult} generatedDate={generatedDate} />
-                </div>
-            </>
-        )}
+        <div ref={page2Ref} className="shadow-lg rounded-lg overflow-hidden border">
+            <PageTwo data={data} generatedDate={generatedDate} />
+        </div>
+        <div ref={page3Ref} className="shadow-lg rounded-lg overflow-hidden border">
+            <PageThree data={data} aiAnalysis={aiAnalysisResult} generatedDate={generatedDate} />
+        </div>
       </div>
 
       <div className="bg-card p-6 rounded-lg shadow-md border text-center sticky bottom-0">
