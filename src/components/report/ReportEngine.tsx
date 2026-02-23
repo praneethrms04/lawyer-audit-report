@@ -35,6 +35,13 @@ export default function ReportEngine({ data }: ReportEngineProps) {
   const page3Ref = useRef<HTMLDivElement>(null);
   const generatedDate = new Date().toLocaleDateString();
 
+  useEffect(() => {
+    // On mount, populate AI issues from mock data for display
+    setAiAnalysisResult({
+      issues: data.jaagaFetch.AIGeneratedDescription,
+      conclusion: 'The AI-generated conclusion will appear here after you click "Generate PDF".',
+    });
+  }, [data.jaagaFetch.AIGeneratedDescription]);
 
   useEffect(() => {
     if (!pdfGenerationTrigger) return;
@@ -142,8 +149,22 @@ export default function ReportEngine({ data }: ReportEngineProps) {
   };
 
   return (
-    <div className="bg-card p-6 rounded-lg shadow-md border text-center">
-      <div className="flex flex-wrap gap-4 items-center justify-center">
+    <>
+      <div className="flex flex-col items-center gap-8 py-8">
+        <div ref={page1Ref} className="shadow-lg rounded-lg overflow-hidden border">
+            <PageOne data={data} generatedDate={generatedDate} />
+        </div>
+        <div ref={page2Ref} className="shadow-lg rounded-lg overflow-hidden border">
+            <PageTwo data={data} generatedDate={generatedDate} />
+        </div>
+        {aiAnalysisResult && (
+            <div ref={page3Ref} className="shadow-lg rounded-lg overflow-hidden border">
+                <PageThree data={data} aiAnalysis={aiAnalysisResult} generatedDate={generatedDate} />
+            </div>
+        )}
+      </div>
+
+      <div className="bg-card p-6 rounded-lg shadow-md border text-center sticky bottom-0">
         <Button onClick={handleGeneratePdf} disabled={isLoading} size="lg">
           {isLoading ? (
             <>
@@ -154,15 +175,6 @@ export default function ReportEngine({ data }: ReportEngineProps) {
             'Generate PDF'
           )}
         </Button>
-      </div>
-
-      {/* Hidden container for rendering pages for html2canvas */}
-      <div className="fixed top-0 left-[-9999px] w-auto h-auto opacity-100" aria-hidden="true">
-        <div ref={page1Ref}><PageOne data={data} generatedDate={generatedDate} /></div>
-        <div ref={page2Ref}><PageTwo data={data} generatedDate={generatedDate} /></div>
-        <div ref={page3Ref}>
-          {aiAnalysisResult && <PageThree data={data} aiAnalysis={aiAnalysisResult} generatedDate={generatedDate} />}
-        </div>
       </div>
 
       <Dialog open={!!previewUrl} onOpenChange={(open) => !open && setPreviewUrl(null)}>
@@ -197,6 +209,6 @@ export default function ReportEngine({ data }: ReportEngineProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }
