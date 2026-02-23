@@ -13,19 +13,17 @@ const PageWrapper = React.forwardRef<HTMLDivElement, PageWrapperProps>(
     return (
       <div
         ref={ref}
-        className="bg-white text-black font-body"
+        className="bg-white text-black font-body flex flex-col"
         style={{
           width: '210mm',
           height: '297mm',
           padding: '20mm',
-          display: 'flex',
-          flexDirection: 'column',
           fontFamily: "'Inter', sans-serif",
           boxSizing: 'border-box',
         }}
       >
         <ReportHeader />
-        <main className="flex-grow flex flex-col text-sm">
+        <main className="flex-grow text-sm">
           {children}
         </main>
         <ReportFooter currentPage={currentPage} generatedDate={generatedDate} />
